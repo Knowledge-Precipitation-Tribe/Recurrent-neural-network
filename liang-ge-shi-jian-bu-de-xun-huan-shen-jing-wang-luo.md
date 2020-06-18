@@ -2,7 +2,7 @@
 
 本小节中，我们将学习具有两个时间步的前馈神经网络组成的简单循环神经网络，用于实现回归/拟合功能。
 
-## 19.1.1 提出问题
+## 提出问题
 
 我们先用一个最简单的序列问题来了解一下循环神经网络的基本运作方式。
 
@@ -21,7 +21,7 @@
 
 读者可能会产生疑问：这个问题用一个最简单不过的程序就可以解决，我们为什么还要大动干戈地使用神经网络呢？如：
 
-```text
+```java
 def echo(x1,x2):
     return x2
 ```
@@ -30,13 +30,13 @@ def echo(x1,x2):
 
 如果把发射信号和回波信号绘制成图，如图19-6和图19-7所示。
 
-图19-6 信号及回波样本序列
+![&#x56FE;19-6 &#x4FE1;&#x53F7;&#x53CA;&#x56DE;&#x6CE2;&#x6837;&#x672C;&#x5E8F;&#x5217;](.gitbook/assets/image%20%282%29.png)
 
-图19-7 信号及回波样本序列局部放大图
+![&#x56FE;19-7 &#x4FE1;&#x53F7;&#x53CA;&#x56DE;&#x6CE2;&#x6837;&#x672C;&#x5E8F;&#x5217;&#x5C40;&#x90E8;&#x653E;&#x5927;&#x56FE;](.gitbook/assets/image%20%284%29.png)
 
 其中，红色叉子为样本数据点，蓝色圆点为标签数据点，它总是落后于样本数据一个时间步。还可以看到以上数据形成的曲线完全随机，毫无规律。
 
-## 19.1.2 准备数据
+## 准备数据
 
 与前面前馈神经网络和卷积神经网络中使用的样本数据的形状不同，在循环神经网络中的样本数据为三维：
 
@@ -65,7 +65,7 @@ def echo(x1,x2):
 | 5 | 0.94 | 0.24 |
 | ... | ... | ... |
 
-## 19.1.3 用前馈神经网络的知识来解决问题
+## 用前馈神经网络的知识来解决问题
 
 ### 搭建网络
 
@@ -77,7 +77,7 @@ def echo(x1,x2):
 
 所以，即使使用前馈神经网络中的曲线拟合技术得到了一个拟合网络，也不能正确地预测不在样本序列里的测试集数据。但是，我们可以把前馈神经网络做一个变形，让它能够处理时间序列数据，如图19-8所示。
 
-图19-8 两个时间步的前馈神经网络
+![&#x56FE;19-8 &#x4E24;&#x4E2A;&#x65F6;&#x95F4;&#x6B65;&#x7684;&#x524D;&#x9988;&#x795E;&#x7ECF;&#x7F51;&#x7EDC;](.gitbook/assets/image.png)
 
 图19-8中含有两个简单的前馈神经网络，t1和t2，每个节点上都只有一个神经元，其中，各个节点的名称和含义如表19-3所示。
 
@@ -109,47 +109,69 @@ t1和t2是两个独立的网络，在t1和t2之间，用一个W连接t1的隐层
 
 对于t1：
 
-$$ h\_{t1}=x\_{t1} \cdot U + b\_h\tag{1} $$
+$$ h_{t1}=x_{t1} \cdot U + b_h\tag{1} $$
 
-$$ s\_{t1} = Tanh\(h\_{t1}\) \tag{2} $$
+$$ s_{t1} = Tanh(h_{t1}) \tag{2} $$
 
-对于t2： $$ h\_{t2}=x\_{t2} \cdot U + s\_{t1} \cdot W +b\_h\tag{3} $$
+对于t2： $$ h_{t2}=x_{t2} \cdot U + s_{t1} \cdot W +b_h\tag{3} $$
 
-$$ s\_{t2} = Tanh\(h\_{t2}\) \tag{4} $$
+$$ s_{t2} = Tanh(h_{t2}) \tag{4} $$
 
-$$ z\_{t2} = s\_{t2} \cdot V + b\_z\tag{5} $$
+$$ z_{t2} = s_{t2} \cdot V + b_z\tag{5} $$
 
-$$ loss = \frac{1}{2}\(z\_{t2}-y\_{t2}\)^2\tag{6} $$
+$$ loss = \frac{1}{2}(z_{t2}-y_{t2})^2\tag{6} $$
 
 在本例中，公式1至公式6中，所有的变量均为标量，这就有利于我们对反向传播的推导，不用考虑矩阵、向量的求导运算。
 
-本来整体的损失函数值$loss$应该是两个时间步的损失函数值之和，但是第一个时间步没有输出，所以不需要计算损失函数值，因此$loss$就等于第二个时间步的损失函数值。
+本来整体的损失函数值$$loss$$应该是两个时间步的损失函数值之和，但是第一个时间步没有输出，所以不需要计算损失函数值，因此$$loss$$就等于第二个时间步的损失函数值。
 
 ### 反向传播
 
 我们首先对t2网络进行反向传播推导：
 
-$$ \frac{\partial loss}{\partial z\_{t2}}=z\_{t2}-y\_{t2} \rightarrow dz\_{t2} \tag{7} $$ $$ \begin{aligned} \frac{\partial loss}{\partial h\_{t2}}&=\frac{\partial loss}{\partial z\_{t2}}\frac{\partial z\_{t2}}{\partial s\_{t2}}\frac{\partial s\_{t2}}{\partial h\_{t2}} \ &=dz\_{t2} \cdot V \cdot Tanh'\(s\_{t2}\) \ &=dz\_{t2} \cdot V \cdot \(1-s\_{t2}^2\) \rightarrow dh\_{t2} \tag{8} \end{aligned} $$
+$$
+\frac{\partial loss}{\partial z_{t2}}=z_{t2}-y_{t2} \rightarrow dz_{t2} \tag{7}
+$$
 
-$$ \frac{\partial loss}{\partial b\_z}=\frac{\partial loss}{\partial z\_{t2}}\frac{\partial z\_{t2}}{\partial b\_z}=dz\_{t2} \rightarrow db\_{z\_{t2}} \tag{9} $$
+$$\begin{aligned} \frac{\partial loss}{\partial h_{t2}}=\frac{\partial loss}{\partial z_{t2}}\frac{\partial z_{t2}}{\partial s_{t2}}\frac{\partial s_{t2}}{\partial h_{t2}} \ =dz_{t2} \cdot V \cdot Tanh'(s_{t2}) \ &=dz_{t2} \cdot V \cdot (1-s_{t2}^2) \rightarrow dh_{t2}  \end{aligned}  \tag{8}$$
 
-$$ \frac{\partial loss}{\partial b\_h}=\frac{\partial loss}{\partial h\_{t2}}\frac{\partial h\_{t2}}{\partial b\_h}=dh\_{t2} \rightarrow db\_{h\_{t2}} \tag{10} $$
+$$
+\frac{\partial loss}{\partial b_z}=\frac{\partial loss}{\partial z_{t2}}\frac{\partial z_{t2}}{\partial b_z}=dz_{t2} \rightarrow db_{z_{t2}} \tag{9}
+$$
 
-$$ \frac{\partial loss}{\partial V}=\frac{\partial loss}{\partial z\_{t2}}\frac{\partial z\_{t2}}{\partial V}=dz\_{t2} \cdot s \rightarrow dV\_{t1} \tag{11} $$
+$$
+\frac{\partial loss}{\partial b_h}=\frac{\partial loss}{\partial h_{t2}}\frac{\partial h_{t2}}{\partial b_h}=dh_{t2} \rightarrow db_{h_{t2}} \tag{10}
+$$
 
-$$ \frac{\partial loss}{\partial U}=\frac{\partial loss}{\partial h\_{t2}}\frac{\partial h\_{t2}}{\partial U}=dh\_{t2} \cdot x\_{t2} \rightarrow dU\_{t1} \tag{12} $$
+$$
+\frac{\partial loss}{\partial V}=\frac{\partial loss}{\partial z_{t2}}\frac{\partial z_{t2}}{\partial V}=dz_{t2} \cdot s \rightarrow dV_{t1} \tag{11}
+$$
 
-$$ \frac{\partial loss}{\partial W}=\frac{\partial loss}{\partial h\_{t2}}\frac{\partial h\_{t2}}{\partial W}=dh\_{t2} \cdot s\_{t1} \rightarrow dW\_{t2} \tag{13} $$
+$$
+\frac{\partial loss}{\partial U}=\frac{\partial loss}{\partial h_{t2}}\frac{\partial h_{t2}}{\partial U}=dh_{t2} \cdot x_{t2} \rightarrow dU_{t1} \tag{12}
+$$
+
+$$
+\frac{\partial loss}{\partial W}=\frac{\partial loss}{\partial h_{t2}}\frac{\partial h_{t2}}{\partial W}=dh_{t2} \cdot s_{t1} \rightarrow dW_{t2} \tag{13}
+$$
 
 下面我们对t1网络进行反向传播推导。由于t1是没有输出的，所以我们不必考虑后半部分的反向传播问题，只从s节点开始向后计算。
 
-$$ \frac{\partial loss}{\partial h\_{t1}}=\frac{\partial loss}{\partial h\_{t2}}\frac{\partial h\_{t2}}{\partial s\_{t1}}\frac{\partial s\_{t1}}{\partial h\_{t1}}=dh\_{t2} \cdot W \cdot \(1-s\_{t1}^2\) \rightarrow dh\_{t1} \tag{14} $$
+$$ \frac{\partial loss}{\partial h_{t1}}=\frac{\partial loss}{\partial h_{t2}}\frac{\partial h_{t2}}{\partial s_{t1}}\frac{\partial s_{t1}}{\partial h_{t1}}=dh_{t2} \cdot W \cdot (1-s_{t1}^2) \rightarrow dh_{t1} \tag{14} $$
 
-$$ \frac{\partial loss}{\partial b\_h}=\frac{\partial loss}{\partial h\_{t1}}\frac{\partial h\_{t1}}{\partial b\_h}=dh\_{t1} \rightarrow db\_{h\_{t1}} \tag{15} $$ $$ db\_{z\_{t1}} = 0 \tag{16} $$ $$ \frac{\partial loss}{\partial U}=\frac{\partial loss}{\partial h\_{t1}}\frac{\partial h\_{t1}}{\partial U}=dh\_{t1} \cdot x\_{t1} \rightarrow dU\_{t1} \tag{17} $$ $$ dV\_{t1} = 0 \tag{18} $$ $$ dW\_{t1}=0 \tag{19} $$
+$$ \frac{\partial loss}{\partial b_h}=\frac{\partial loss}{\partial h_{t1}}\frac{\partial h_{t1}}{\partial b_h}=dh_{t1} \rightarrow db_{h_{t1}} \tag{15} $$
+
+$$ db_{z_{t1}} = 0 \tag{16} $$
+
+$$ \frac{\partial loss}{\partial U}=\frac{\partial loss}{\partial h_{t1}}\frac{\partial h_{t1}}{\partial U}=dh_{t1} \cdot x_{t1} \rightarrow dU_{t1} \tag{17} $$
+
+$$ dV_{t1} = 0 \tag{18} $$
+
+$$ dW_{t1}=0 \tag{19} $$
 
 ### 梯度更新
 
-到目前为止，我们得到了两个时间步内部的所有参数的误差值，如何更新参数呢？因为在循环神经网络中，$U、V、W、bz、bh$都是共享的，所以不能单独更新独立时间步中的参数，而是要一起更新。
+到目前为止，我们得到了两个时间步内部的所有参数的误差值，如何更新参数呢？因为在循环神经网络中，$$U、V、W、bz、bh$$都是共享的，所以不能单独更新独立时间步中的参数，而是要一起更新。
 
 $$ U = U - \eta \cdot \(dU\_{t1} + dU\_{t2}\) $$
 
@@ -161,7 +183,7 @@ $$ b\_h = b\_h - \eta \cdot \(db\_{ht1} + db\_{ht2}\) $$
 
 $$ b\_z = b\_z - \eta \cdot \(db\_{zt1} + db\_{zt2}\) $$
 
-## 19.1.4 代码实现
+## 代码实现
 
 按照图19-8的设计，我们实现两个前馈神经网络来模拟两个时序。
 
@@ -169,7 +191,7 @@ $$ b\_z = b\_z - \eta \cdot \(db\_{zt1} + db\_{zt2}\) $$
 
 时序1的类名叫做timestep\_1，其前向计算过程遵循公式1、2，其反向传播过程遵循公式14至公式19。
 
-```text
+```python
 class timestep_1(object):
     def forward(self,x,U,V,W,bh):
         ...
@@ -182,7 +204,7 @@ class timestep_1(object):
 
 时序2的类名叫做timestep\_2，其前向计算过程遵循公式3至公式3，其反向传播过程遵循公式7至公式13。
 
-```text
+```python
 class timestep_2(object):
     def forward(self,x,U,V,W,bh,bz,s_t1):
         ...
@@ -195,7 +217,7 @@ class timestep_2(object):
 
 在初始化函数中，先建立好一些基本的类，如损失函数计算、训练历史记录，再建立好两个时序的类，分别命名为t1和t2。
 
-```text
+```python
 class net(object):
     def __init__(self, dr):
         self.dr = dr
@@ -207,7 +229,7 @@ class net(object):
 
 在训练函数中，仍然采用DNN/CNN中学习过的双重循环的方法，外循环为epoch，内循环为iteration，每次只用一个样本做训练，分别取出它的时序1和时序2的样本值和标签值，先做前向计算，再做反向传播，然后更新参数。
 
-```text
+```python
     def train(self):
         ...
         for epoch in range(max_epoch):
@@ -216,15 +238,15 @@ class net(object):
         ...
 ```
 
-## 19.1.5 运行结果
+## 运行结果
 
-图19-9 损失函数值和准确度的历史记录曲线
+![&#x56FE;19-9 &#x635F;&#x5931;&#x51FD;&#x6570;&#x503C;&#x548C;&#x51C6;&#x786E;&#x5EA6;&#x7684;&#x5386;&#x53F2;&#x8BB0;&#x5F55;&#x66F2;&#x7EBF;](.gitbook/assets/image%20%281%29.png)
 
 从图19-9的训练过程看，网络收敛情况比较理想。由于使用单样本训练，所以训练集的损失函数变化曲线和准确度变化曲线计算不准确，所以在图中没有画出，下同。
 
 以下是打印输出的最后几行信息：
 
-```text
+```python
 ...
 98
 loss=0.001396, acc=0.952491
@@ -236,13 +258,13 @@ loss=0.002230, acc=0.952609
 
 使用完全不同的测试集数据，得到的准确度为95.26%。最后在测试集上得到的拟合结果如图19-10所示。
 
-图19-10 测试集上的拟合结果
+![&#x56FE;19-10 &#x6D4B;&#x8BD5;&#x96C6;&#x4E0A;&#x7684;&#x62DF;&#x5408;&#x7ED3;&#x679C;](.gitbook/assets/image%20%283%29.png)
 
 红色x是测试集样本，蓝色圆点是模型的预测值，可以看到波动的趋势全都预测准确，具体的值上面有一些微小的误差。
 
 以下是训练出来的各个参数的值：
 
-```text
+```python
 U=[[-0.54717934]], bh=[[0.26514691]],
 V=[[0.50609376]], bz=[[0.53271514]],
 W=[[-4.39099762]]
@@ -254,7 +276,9 @@ W=[[-4.39099762]]
 
 ## 代码位置
 
-ch19, Level1
+原代码位置：ch19, Level1
+
+个人代码：
 
 ## 思考和练习
 
