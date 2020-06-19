@@ -9,10 +9,10 @@
 import struct
 from MiniFramework.DataReader_2_0 import *
 
-train_image_file = '../../Data/train-images-10'
-train_label_file = '../../Data/train-labels-10'
-test_image_file = '../../Data/test-images-10'
-test_label_file = '../../Data/test-labels-10'
+train_image_file = '../data/train-images-10'
+train_label_file = '../data/train-labels-10'
+test_image_file = '../data/test-images-10'
+test_label_file = '../data/test-labels-10'
 
 class MnistImageDataReader(DataReader_2_0):
     # mode: "image"=Nx1x28x28,  "vector"=Nx1x784,  "timestep"=Nx28x28

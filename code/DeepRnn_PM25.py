@@ -79,10 +79,10 @@ class timestep(object):
 
         if (isLast):
             # 公式12
-            self.dh2 = np.dot(self.dz, self.V.T) * Tanh().backward(self.s2)
+            self.dh2 = np.dot(self.dz, self.V.T) * (1 - np.multiply(self.s1, self.s1))
         else:
             # 公式15
-            self.dh2 = np.dot(next_dh2, self.W2.T) * Tanh().backward(self.s2)
+            self.dh2 = np.dot(next_dh2, self.W2.T) * (1 - np.multiply(self.s1, self.s1))
         # end if
 
         if (isLast):
@@ -97,10 +97,10 @@ class timestep(object):
 
         if (isLast):
             # 公式13
-            self.dh1 = np.dot(self.dh2, self.Q.T) * Tanh().backward(self.s1)
+            self.dh1 = np.dot(self.dh2, self.Q.T) * (1 - np.multiply(self.s1, self.s1))
         else:
             # 公式17
-            self.dh1 = (np.dot(self.dh2, self.Q.T) + np.dot(next_dh1, self.W1.T)) * Tanh().backward(self.s1)
+            self.dh1 = (np.dot(self.dh2, self.Q.T) + np.dot(next_dh1, self.W1.T)) * (1 - np.multiply(self.s1, self.s1))
 
         #             self.dh1 = np.dot(next_dh1, self.W1.T) * Tanh().backward(self.s1)
 
@@ -361,9 +361,9 @@ if __name__ == '__main__':
         net_type)
 
     n = net(hp, model)
-    # n.train(dataReader, checkpoint=1)
+    n.train(dataReader, checkpoint=1)
 
-    n.load_parameters(ParameterType.Last)
+    # n.load_parameters(ParameterType.Last)
     pred_steps = [8, 4, 2, 1]
     for i in range(4):
         test(n, dataReader, num_step, pred_steps[i], 1050, 1150)
