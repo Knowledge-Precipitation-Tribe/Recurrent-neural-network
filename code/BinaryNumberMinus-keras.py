@@ -36,7 +36,7 @@ def build_model():
     model.add(SimpleRNN(input_shape=(4,2),
                         units=4))
     model.compile(optimizer='Adam',
-                  loss='mean_squared_error',
+                  loss='binary_crossentropy',
                   metrics=['accuracy'])
     return model
 
@@ -75,7 +75,6 @@ if __name__ == '__main__':
                         epochs=1000,
                         batch_size=64,
                         validation_data=(x_val, y_val))
-    model.save("simplernn.h5")
     print(model.summary())
     draw_train_history(history)
 
