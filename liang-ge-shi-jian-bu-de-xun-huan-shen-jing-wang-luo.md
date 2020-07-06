@@ -274,13 +274,87 @@ W=[[-4.39099762]]
 
 至此，我们解决了本章开始时提出的问题。注意，我们没有使用到循环神经网络的任何概念，而是完全通过以前学习到的前馈神经网络的概念来做正向和反向推导。但是通过t1、t2两个时序的衔接，我们已经可以体会到循环神经网络的妙处了，后面我们会用它来解决更复杂的问题。
 
+## keras实现
+
+在keras中我们直接使用SimpleRnn即可
+
+```python
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+import matplotlib.pyplot as plt
+
+from MiniFramework.DataReader_2_0 import *
+
+from keras.models import Sequential
+from keras.layers import SimpleRNN
+
+train_file = "../data/ch19.train_echo.npz"
+test_file = "../data/ch19.test_echo.npz"
+
+
+def load_data():
+    dataReader = DataReader_2_0(train_file, test_file)
+    dataReader.ReadData()
+    dataReader.GenerateValidationSet(k=10)
+    x_train, y_train = dataReader.XTrain, dataReader.YTrain
+    x_test, y_test = dataReader.XTest, dataReader.YTest
+    x_val, y_val = dataReader.XDev, dataReader.YDev
+    return x_train, y_train, x_test, y_test, x_val, y_val
+
+
+def build_model():
+    model = Sequential()
+    model.add(SimpleRNN(input_shape=(2,1),
+                        units=2))
+    model.compile(optimizer='Adam',
+                  loss='mean_squared_error')
+    return model
+
+#画出训练过程中训练和验证的精度与损失
+def draw_train_history(history):
+    plt.figure(1)
+    # summarize history for accuracy
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+    plt.show()
+
+
+if __name__ == '__main__':
+    x_train, y_train, x_test, y_test, x_val, y_val = load_data()
+    print(x_train.shape)
+    print(x_test.shape)
+    print(x_val.shape)
+
+    model = build_model()
+    history = model.fit(x_train, y_train,
+                        epochs=50,
+                        batch_size=64,
+                        validation_data=(x_val, y_val))
+    print(model.summary())
+    draw_train_history(history)
+
+    loss = model.evaluate(x_test, y_test)
+    print("test loss: {}".format(loss))
+```
+
+### 模型输出
+
+```python
+test loss: 0.052345885932445525
+```
+
+### 损失曲线
+
+![](.gitbook/assets/image%20%2846%29.png)
+
 ## 代码位置
 
-原代码位置：ch19, Level1
+原代码位置：[ch19, Level1](https://github.com/microsoft/ai-edu/blob/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/A2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/SourceCode/ch19-RNNBasic/Level1_EchoRandomNumber.py)
 
-个人代码：
-
-## 思考和练习
-
-1. 如果不加bh和bz两个值，即令其衡为0，试验一下网络训练的效果。
+个人代码：[**EchoRandomNumber**](https://github.com/Knowledge-Precipitation-Tribe/Recurrent-neural-network/blob/master/code/EchoRandomNumber.py)\*\*\*\*
 

@@ -359,16 +359,98 @@ pred: [0, 1, 1, 1]
 
 在每个时间步中，U、V负责的是0、1相减可以得到正确的值，而W的作用是借位，在相邻的时间步之间传递借位信息，以便当t-1时刻的计算发生借位时，在t时刻也可以得到正确的结果。
 
+## keras实现
+
+```python
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+import matplotlib.pyplot as plt
+
+from MiniFramework.DataReader_2_0 import *
+
+from keras.models import Sequential
+from keras.layers import SimpleRNN
+
+train_file = "../data/ch19.train_minus.npz"
+test_file = "../data/ch19.test_minus.npz"
+
+
+def load_data():
+    dataReader = DataReader_2_0(train_file, test_file)
+    dataReader.ReadData()
+    dataReader.Shuffle()
+    dataReader.GenerateValidationSet(k=10)
+    x_train, y_train = dataReader.XTrain, dataReader.YTrain
+    x_test, y_test = dataReader.XTest, dataReader.YTest
+    x_val, y_val = dataReader.XDev, dataReader.YDev
+    return x_train, y_train, x_test, y_test, x_val, y_val
+
+
+def build_model():
+    model = Sequential()
+    model.add(SimpleRNN(input_shape=(4,2),
+                        units=4))
+    model.compile(optimizer='Adam',
+                  loss='binary_crossentropy',
+                  metrics=['accuracy'])
+    return model
+
+#画出训练过程中训练和验证的精度与损失
+def draw_train_history(history):
+    plt.figure(1)
+
+    # summarize history for accuracy
+    plt.subplot(211)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+
+    # summarize history for loss
+    plt.subplot(212)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+    plt.show()
+
+
+if __name__ == '__main__':
+    x_train, y_train, x_test, y_test, x_val, y_val = load_data()
+    print(x_train.shape)
+    print(x_test.shape)
+    print(x_val.shape)
+
+    model = build_model()
+    history = model.fit(x_train, y_train,
+                        epochs=1000,
+                        batch_size=64,
+                        validation_data=(x_val, y_val))
+    print(model.summary())
+    draw_train_history(history)
+
+    loss, accuracy = model.evaluate(x_test, y_test)
+    print("test loss: {}, test accuracy: {}".format(loss, accuracy))
+```
+
+### 模型输出
+
+```python
+test loss: 1.272886235924328, test accuracy: 0.6066176295280457
+```
+
+### 训练损失以及准确率曲线
+
+![](.gitbook/assets/image%20%2847%29.png)
+
 ## 代码位置
 
 原代码位置：[ch19, Level2](https://github.com/microsoft/ai-edu/blob/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/A2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/SourceCode/ch19-RNNBasic/Level2_BinaryNumberMinus.py)
 
-个人代码：
-
-## 思考和练习
-
-1. 把tanh函数变成sigmoid函数，试试看有什么不同？
-2. 给h和z节点增加偏移值，看看有什么不同？
-3. 把h节点的神经元数量增加到8个或16个，看看训练过程有何不同？减少到2个神经元会得到正确结果吗？
-4. 把二进制数扩展为8位，即最大值255时，这个网络还能正确工作吗？
+个人代码：[**BinaryNumberMinus**](https://github.com/Knowledge-Precipitation-Tribe/Recurrent-neural-network/blob/master/code/BinaryNumberMinus.py)\*\*\*\*
 
