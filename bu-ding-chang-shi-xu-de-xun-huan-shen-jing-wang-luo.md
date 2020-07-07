@@ -152,9 +152,9 @@ correctness=3255/4400=0.7397727272727272
 
 ## 代码位置
 
-原代码位置：ch19, Level5
+原代码位置：[ch19, Level5](https://github.com/microsoft/ai-edu/blob/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/A2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/SourceCode/ch19-RNNBasic/Level5_NameClassifier.py)
 
-个人代码：
+个人代码：[**NameClassifier**](https://github.com/Knowledge-Precipitation-Tribe/Recurrent-neural-network/blob/f66f9ce167/code/NameClassifier.py)\*\*\*\*
 
 ## 参考资料
 

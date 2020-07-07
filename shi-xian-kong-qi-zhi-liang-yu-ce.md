@@ -268,14 +268,259 @@ net_type = NetType.Fitting
 
 如果想改变数据集，可以修改SourceCode/Data/ch19\_PM25.py，来重新生成数据集。
 
-个人代码：
+个人代码：[**Base\_PM25\_Fitting**](https://github.com/Knowledge-Precipitation-Tribe/Recurrent-neural-network/blob/f66f9ce1677866c4cf587f0ce21fef96ee748994/code/Base_PM25_Fitting.py)\*\*\*\*
 
-## 思考和练习
+## keras-回归实现
 
-1. 把预测值还原为真实值后，再计算准确度，看看数值会是多少？
-2. 做分类预测时，把max\_epoch的数值变大，看看是否可以得到更好的效果？
-3. 分别调整隐层神经元数num\_hidden、时间步数num\_step，并仍旧预测8、4、2、1小时的数据，看看结果是否有变化？
-4. 不删除原始数据中的年、月、日、时、雨、雪等字段，看看对训练效果的影响如何。
+```python
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+import matplotlib.pyplot as plt
+
+from ExtendedDataReader.PM25DataReader import *
+
+from keras.models import Sequential, load_model
+from keras.layers import SimpleRNN
+
+train_file = "../data/ch19.train_echo.npz"
+test_file = "../data/ch19.test_echo.npz"
+
+
+def load_data(net_type, num_step):
+    dataReader = PM25DataReader(net_type, num_step)
+    dataReader.ReadData()
+    dataReader.Normalize()
+    dataReader.GenerateValidationSet(k=1000)
+    x_train, y_train = dataReader.XTrain, dataReader.YTrain
+    x_test, y_test = dataReader.XTest, dataReader.YTest
+    x_val, y_val = dataReader.XDev, dataReader.YDev
+    return x_train, y_train, x_test, y_test, x_val, y_val
+
+
+def build_model():
+    model = Sequential()
+    model.add(SimpleRNN(input_shape=(24,6),
+                        units=1))
+    model.compile(optimizer='Adam',
+                  loss='mean_squared_error')
+    return model
+
+#画出训练过程中训练和验证的精度与损失
+def draw_train_history(history):
+    plt.figure(1)
+    # summarize history for accuracy
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+    plt.show()
+
+
+def show_result(model, X, Y, num_step, pred_step, start, end):
+    assert(X.shape[0] == Y.shape[0])
+    count = X.shape[0] - X.shape[0] % pred_step
+    A = np.zeros((count,1))
+
+    for i in range(0, count, pred_step):
+        A[i:i+pred_step] = predict(model, X[i:i+pred_step], num_step, pred_step)
+
+    print(A.shape)
+    print(Y.shape)
+    plt.plot(A[start+1:end+1], 'r-x', label="Pred")
+    plt.plot(Y[start:end], 'b-o', label="True")
+    plt.legend()
+    plt.show()
+
+def predict(net, X, num_step, pred_step):
+    A = np.zeros((pred_step, 1))
+    for i in range(pred_step):
+        x = set_predicated_value(X[i:i+1], A, num_step, i)
+        a = net.predict(x)
+        A[i,0] = a
+    #endfor
+    return A
+
+def set_predicated_value(X, A, num_step, predicated_step):
+    x = X.copy()
+    for i in range(predicated_step):
+        x[0, num_step - predicated_step + i, 0] = A[i]
+    #endfor
+    return x
+
+
+if __name__ == '__main__':
+    net_type = NetType.Fitting
+    num_step = 24
+    x_train, y_train, x_test, y_test, x_val, y_val = load_data(net_type, num_step)
+    # print(x_train.shape)
+    # print(y_train.shape)
+    # print(x_test.shape)
+    # print(y_test.shape)
+    # print(x_val.shape)
+    # print(y_train.shape)
+
+    model = build_model()
+    history = model.fit(x_train, y_train,
+                        epochs=10,
+                        batch_size=64,
+                        validation_data=(x_val, y_val))
+    # model = load_model("pm25.h5")
+    print(model.summary())
+    model.save("pm25.h5")
+    draw_train_history(history)
+
+    loss = model.evaluate(x_test, y_test)
+    print("test loss: {}".format(loss))
+
+    pred_steps = [8,4,2,1]
+    for i in range(4):
+        show_result(model, x_test, y_test, num_step, pred_steps[i], 1050, 1150)
+```
+
+### 模型输出
+
+```python
+test loss: 0.0004879536351833246
+```
+
+### 损失曲线
+
+![](.gitbook/assets/image%20%2849%29.png)
+
+## keras-分类实现
+
+```python
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+import matplotlib.pyplot as plt
+
+from ExtendedDataReader.PM25DataReader import *
+
+from keras.models import Sequential, load_model
+from keras.layers import SimpleRNN, Dense
+
+train_file = "../data/ch19.train_echo.npz"
+test_file = "../data/ch19.test_echo.npz"
+
+
+def load_data(net_type, num_step):
+    dataReader = PM25DataReader(net_type, num_step)
+    dataReader.ReadData()
+    dataReader.Normalize()
+    dataReader.GenerateValidationSet(k=1000)
+    x_train, y_train = dataReader.XTrain, dataReader.YTrain
+    x_test, y_test = dataReader.XTest, dataReader.YTest
+    x_val, y_val = dataReader.XDev, dataReader.YDev
+    return x_train, y_train, x_test, y_test, x_val, y_val
+
+
+def build_model():
+    model = Sequential()
+    model.add(SimpleRNN(input_shape=(24,6),
+                        units=1))
+    model.add(Dense(6, activation='softmax'))
+    model.compile(optimizer='Adam',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
+
+#画出训练过程中训练和验证的精度与损失
+def draw_train_history(history):
+    plt.figure(1)
+
+    # summarize history for accuracy
+    plt.subplot(211)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+
+    # summarize history for loss
+    plt.subplot(212)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+    plt.show()
+
+
+def show_result(model, X, Y, num_step, pred_step, start, end):
+    assert(X.shape[0] == Y.shape[0])
+    count = X.shape[0] - X.shape[0] % pred_step
+    A = np.zeros((count,1))
+
+    for i in range(0, count, pred_step):
+        A[i:i+pred_step] = predict(model, X[i:i+pred_step], num_step, pred_step)
+
+    print(A.shape)
+    print(Y.shape)
+    plt.plot(A[start+1:end+1], 'r-x', label="Pred")
+    plt.plot(Y[start:end], 'b-o', label="True")
+    plt.legend()
+    plt.show()
+
+def predict(net, X, num_step, pred_step):
+    A = np.zeros((pred_step, 1))
+    for i in range(pred_step):
+        x = set_predicated_value(X[i:i+1], A, num_step, i)
+        a = net.predict(x)
+        A[i,0] = a
+    #endfor
+    return A
+
+def set_predicated_value(X, A, num_step, predicated_step):
+    x = X.copy()
+    for i in range(predicated_step):
+        x[0, num_step - predicated_step + i, 0] = A[i]
+    #endfor
+    return x
+
+
+if __name__ == '__main__':
+    net_type = NetType.MultipleClassifier
+    num_step = 24
+    x_train, y_train, x_test, y_test, x_val, y_val = load_data(net_type, num_step)
+    # print(x_train.shape)
+    # print(y_train.shape)
+    # print(x_test.shape)
+    # print(y_test.shape)
+    # print(x_val.shape)
+    # print(y_train.shape)
+
+    model = build_model()
+    history = model.fit(x_train, y_train,
+                        epochs=10,
+                        batch_size=64,
+                        validation_data=(x_val, y_val))
+    # model = load_model("pm25.h5")
+    print(model.summary())
+    draw_train_history(history)
+
+    loss, accuracy = model.evaluate(x_test, y_test)
+    print("test loss: {}, test accuracy: {}".format(loss, accuracy))
+
+    # pred_steps = [8,4,2,1]
+    # for i in range(4):
+    #     show_result(model, x_test, y_test, num_step, pred_steps[i], 1050, 1150)
+```
+
+### 模型输出
+
+```python
+test loss: 0.8552202234119722, test accuracy: 0.7315705418586731
+```
+
+### 损失曲线以及准确率曲线
+
+![](.gitbook/assets/image%20%2848%29.png)
 
 ## 参考文献
 
