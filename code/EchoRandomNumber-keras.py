@@ -54,6 +54,9 @@ def draw_train_history(history):
 if __name__ == '__main__':
     x_train, y_train, x_test, y_test, x_val, y_val = load_data()
     print(x_train.shape)
+    print(x_train[0])
+    print(y_train[0])
+    print(y_train[1])
     print(x_test.shape)
     print(x_val.shape)
 

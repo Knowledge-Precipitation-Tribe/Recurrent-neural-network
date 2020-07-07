@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from ExtendedDataReader.PM25DataReader import *
 
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import SimpleRNN
 
 train_file = "../data/ch19.train_echo.npz"
@@ -52,13 +52,10 @@ def draw_train_history(history):
     plt.show()
 
 
-def show_result(model, x_test, y_test, num_step, pred_step, start, end):
-    count = x_test.shape[0] - x_test.shape[0] % pred_step
-    A = np.zeros((count,1))
-
-    for i in range(0, count, pred_step):
-        A[i:i+pred_step] = model.predict(model, x_test[i:i+pred_step], num_step, pred_step)
-
+def show_result(model, x_test, y_test, start, end):
+    A = model.predict(x_test)
+    loss = model.evaluate(x_test, y_test)
+    print("test loss: {}".format(loss))
     plt.plot(A[start+1:end+1], 'r-x', label="Pred")
     plt.plot(y_test[start:end], 'b-o', label="True")
     plt.legend()
@@ -69,22 +66,26 @@ if __name__ == '__main__':
     net_type = NetType.Fitting
     num_step = 24
     x_train, y_train, x_test, y_test, x_val, y_val = load_data(net_type, num_step)
-    print(x_train.shape)
+    # print(x_train.shape)
     print(x_test.shape)
-    print(x_val.shape)
-    print(y_train.shape)
+    print(x_test[0:8])
+    print(x_test[0:8].shape)
+    for i in range(8):
+        print(i)
+    # print(x_val.shape)
+    # print(y_train.shape)
 
-    model = build_model()
-    history = model.fit(x_train, y_train,
-                        epochs=10,
-                        batch_size=64,
-                        validation_data=(x_val, y_val))
-    print(model.summary())
-    draw_train_history(history)
+    # model = build_model()
+    # history = model.fit(x_train, y_train,
+    #                     epochs=10,
+    #                     batch_size=64,
+    #                     validation_data=(x_val, y_val))
+    # model = load_model("pm25.h5")
+    # print(model.summary())
+    # model.save("pm25.h5")
+    # draw_train_history(history)
 
-    loss = model.evaluate(x_test, y_test)
-    print("test loss: {}".format(loss))
+    # loss = model.evaluate(x_test, y_test)
+    # print("test loss: {}".format(loss))
 
-    pred_steps = [8, 4, 2, 1]
-    for i in range(4):
-        show_result(model, x_test, y_test, num_step, pred_steps[i], 1050, 1150)
+    # show_result(model, x_test, y_test, 8050, 8150)
