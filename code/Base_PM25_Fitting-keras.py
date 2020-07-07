@@ -53,7 +53,6 @@ def draw_train_history(history):
 
 
 def show_result(model, X, Y, num_step, pred_step, start, end):
-    # X,Y = dataReader.GetTestSet()
     assert(X.shape[0] == Y.shape[0])
     count = X.shape[0] - X.shape[0] % pred_step
     A = np.zeros((count,1))
@@ -89,29 +88,26 @@ if __name__ == '__main__':
     net_type = NetType.Fitting
     num_step = 24
     x_train, y_train, x_test, y_test, x_val, y_val = load_data(net_type, num_step)
-    print(x_train.shape)
-    print(y_train.shape)
-    print(x_test.shape)
-    print(y_test.shape)
+    # print(x_train.shape)
+    # print(y_train.shape)
+    # print(x_test.shape)
+    # print(y_test.shape)
     # print(x_val.shape)
     # print(y_train.shape)
 
-    # model = build_model()
-    # history = model.fit(x_train, y_train,
-    #                     epochs=10,
-    #                     batch_size=64,
-    #                     validation_data=(x_val, y_val))
-    model = load_model("pm25.h5")
+    model = build_model()
+    history = model.fit(x_train, y_train,
+                        epochs=10,
+                        batch_size=64,
+                        validation_data=(x_val, y_val))
+    # model = load_model("pm25.h5")
     print(model.summary())
-    # model.save("pm25.h5")
-    # draw_train_history(history)
+    model.save("pm25.h5")
+    draw_train_history(history)
 
-    # start = 0
-    # end = 100
+    loss = model.evaluate(x_test, y_test)
+    print("test loss: {}".format(loss))
 
-    # loss = model.evaluate(x_test[start:end], y_test[start:end])
-    # print("test loss: {}".format(loss))
-
-    pred_steps = [8]
-    for i in range(4):
-        show_result(model, x_test, y_test, num_step, pred_steps[i], 1050, 1150)
+    # pred_steps = [8,4,2,1]
+    # for i in range(4):
+    #     show_result(model, x_test, y_test, num_step, pred_steps[i], 1050, 1150)
