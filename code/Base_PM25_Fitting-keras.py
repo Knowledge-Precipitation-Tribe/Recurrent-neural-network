@@ -52,26 +52,47 @@ def draw_train_history(history):
     plt.show()
 
 
-def show_result(model, x_test, y_test, start, end):
-    A = model.predict(x_test)
-    loss = model.evaluate(x_test, y_test)
-    print("test loss: {}".format(loss))
+def show_result(model, X, Y, num_step, pred_step, start, end):
+    # X,Y = dataReader.GetTestSet()
+    assert(X.shape[0] == Y.shape[0])
+    count = X.shape[0] - X.shape[0] % pred_step
+    A = np.zeros((count,1))
+
+    for i in range(0, count, pred_step):
+        A[i:i+pred_step] = predict(model, X[i:i+pred_step], num_step, pred_step)
+
+    print(A.shape)
+    print(Y.shape)
     plt.plot(A[start+1:end+1], 'r-x', label="Pred")
-    plt.plot(y_test[start:end], 'b-o', label="True")
+    plt.plot(Y[start:end], 'b-o', label="True")
     plt.legend()
     plt.show()
+
+def predict(net, X, num_step, pred_step):
+    A = np.zeros((pred_step, 1))
+    for i in range(pred_step):
+        x = set_predicated_value(X[i:i+1], A, num_step, i)
+        a = net.predict(x)
+        A[i,0] = a
+    #endfor
+    return A
+
+def set_predicated_value(X, A, num_step, predicated_step):
+    x = X.copy()
+    for i in range(predicated_step):
+        x[0, num_step - predicated_step + i, 0] = A[i]
+    #endfor
+    return x
 
 
 if __name__ == '__main__':
     net_type = NetType.Fitting
     num_step = 24
     x_train, y_train, x_test, y_test, x_val, y_val = load_data(net_type, num_step)
-    # print(x_train.shape)
+    print(x_train.shape)
+    print(y_train.shape)
     print(x_test.shape)
-    print(x_test[0:8])
-    print(x_test[0:8].shape)
-    for i in range(8):
-        print(i)
+    print(y_test.shape)
     # print(x_val.shape)
     # print(y_train.shape)
 
@@ -80,12 +101,17 @@ if __name__ == '__main__':
     #                     epochs=10,
     #                     batch_size=64,
     #                     validation_data=(x_val, y_val))
-    # model = load_model("pm25.h5")
-    # print(model.summary())
+    model = load_model("pm25.h5")
+    print(model.summary())
     # model.save("pm25.h5")
     # draw_train_history(history)
 
-    # loss = model.evaluate(x_test, y_test)
+    # start = 0
+    # end = 100
+
+    # loss = model.evaluate(x_test[start:end], y_test[start:end])
     # print("test loss: {}".format(loss))
 
-    # show_result(model, x_test, y_test, 8050, 8150)
+    pred_steps = [8]
+    for i in range(4):
+        show_result(model, x_test, y_test, num_step, pred_steps[i], 1050, 1150)
