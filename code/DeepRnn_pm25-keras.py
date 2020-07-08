@@ -38,25 +38,14 @@ def build_model():
                         return_sequences=True))
     model.add(SimpleRNN(units=1))
     model.compile(optimizer='Adam',
-                  loss='mean_squared_error',
-                  metrics=['accuracy'])
+                  loss='mean_squared_error')
     return model
 
 #画出训练过程中训练和验证的精度与损失
 def draw_train_history(history):
     plt.figure(1)
 
-    # summarize history for accuracy
-    plt.subplot(211)
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'validation'])
-
     # summarize history for loss
-    plt.subplot(212)
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('model loss')
@@ -117,8 +106,8 @@ if __name__ == '__main__':
     model.save("deepRnn_pm25.h5")
     draw_train_history(history)
 
-    loss, accuracy = model.evaluate(x_test, y_test)
-    print("test loss: {}, test accuracy: {}".format(loss, accuracy))
+    loss = model.evaluate(x_test, y_test)
+    print("test loss: {}".format(loss))
 
     pred_steps = [8,4,2,1]
     for i in range(4):
