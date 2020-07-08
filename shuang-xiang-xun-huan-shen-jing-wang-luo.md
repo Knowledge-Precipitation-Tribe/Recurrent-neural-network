@@ -147,7 +147,7 @@ $$
 
 ### 单向循环神经网络的效果
 
-为了与单向的循环神经网络比较，笔者在Level3\_Base的基础上实现了一个MNIST分类，超参如下：
+为了与单向的循环神经网络比较，笔者实现了一个MNIST分类，超参如下：
 
 ```python
     net_type = NetType.MultipleClassifier # 多分类
@@ -222,11 +222,286 @@ loss=0.146799, acc=0.958000
 | 准确率 | 95.17% | 95.8% |
 | 损失函数值 | 0.176 | 0.144 |
 
+## keras实现
+
+### MNIST分类-单向循环神经网络
+
+```python
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+import matplotlib.pyplot as plt
+
+from ExtendedDataReader.MnistImageDataReader import *
+
+from keras.models import Sequential, load_model
+from keras.layers import SimpleRNN, Dense, Reshape
+
+
+
+def load_data():
+    dataReader = MnistImageDataReader(mode="timestep")
+    dataReader.ReadData()
+    dataReader.NormalizeX()
+    dataReader.NormalizeY(NetType.MultipleClassifier, base=0)
+    dataReader.Shuffle()
+    dataReader.GenerateValidationSet(k=12)
+    x_train, y_train = dataReader.XTrain, dataReader.YTrain
+    x_test, y_test = dataReader.XTest, dataReader.YTest
+    x_val, y_val = dataReader.XDev, dataReader.YDev
+    x_train = x_train.squeeze()
+    x_test = x_test.squeeze()
+    x_val = x_val.squeeze()
+
+    x_test_raw = dataReader.XTestRaw[0:64]
+    y_test_raw = dataReader.YTestRaw[0:64]
+
+    return x_train, y_train, x_test, y_test, x_val, y_val, x_test_raw, y_test_raw
+
+
+def build_model():
+    model = Sequential()
+    model.add(SimpleRNN(input_shape=(28,28),
+                        units=8))
+    model.add(Dense(10, activation='softmax'))
+    model.compile(optimizer='Adam',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
+
+#画出训练过程中训练和验证的精度与损失
+def draw_train_history(history):
+    plt.figure(1)
+
+    # summarize history for accuracy
+    plt.subplot(211)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+
+    # summarize history for loss
+    plt.subplot(212)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+    plt.show()
+
+
+def show_result(x, y, y_raw):
+    x = x / 255
+    fig, ax = plt.subplots(nrows=8, ncols=8, figsize=(11, 11))
+    for i in range(64):
+        ax[i // 8, i % 8].imshow(x[i].transpose(1, 2, 0).squeeze())
+        print(y[i, 0])
+        print(y_raw[i, 0])
+        if y[i, 0] == y_raw[i, 0]:
+            ax[i // 8, i % 8].set_title(y[i, 0])
+        else:
+            ax[i // 8, i % 8].set_title(y[i, 0], fontdict={'color':'r'})
+        ax[i // 8, i % 8].axis('off')
+    # endfor
+    plt.show()
+
+
+if __name__ == '__main__':
+    x_train, y_train, x_test, y_test, x_val, y_val, x_test_raw, y_test_raw = load_data()
+    print(x_train.shape)
+    print(y_train.shape)
+    print(x_test.shape)
+    print(y_test.shape)
+    print(x_val.shape)
+    print(y_train.shape)
+
+    model = build_model()
+    history = model.fit(x_train, y_train,
+                        epochs=10,
+                        batch_size=64,
+                        validation_data=(x_val, y_val))
+    model.save("Base_MNIST.h5")
+    print(model.summary())
+    draw_train_history(history)
+
+    loss, accuracy = model.evaluate(x_test, y_test)
+    print("test loss: {}, test accuracy: {}".format(loss, accuracy))
+
+    z = model.predict(x_test[0:64])
+    show_result(x_test_raw[0:64], np.argmax(z, axis=1).reshape(64, 1), y_test_raw[0:64])
+```
+
+#### 模型输出
+
+```python
+Model: "sequential_1"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+simple_rnn_1 (SimpleRNN)     (None, 8)                 296       
+_________________________________________________________________
+dense_1 (Dense)              (None, 10)                90        
+=================================================================
+Total params: 386
+Trainable params: 386
+Non-trainable params: 0
+_________________________________________________________________
+
+test loss: 1.0559768465042114, test accuracy: 0.6190000176429749
+```
+
+#### 损失以及准确率曲线
+
+![](.gitbook/assets/image%20%2854%29.png)
+
+#### 模型分类结果
+
+![](.gitbook/assets/image%20%2852%29.png)
+
+### MNIST分类-双向循环神经网络
+
+```python
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+import matplotlib.pyplot as plt
+
+from ExtendedDataReader.MnistImageDataReader import *
+
+from keras.models import Sequential, load_model
+from keras.layers import SimpleRNN, Dense, Bidirectional
+
+
+
+def load_data():
+    dataReader = MnistImageDataReader(mode="timestep")
+    dataReader.ReadData()
+    dataReader.NormalizeX()
+    dataReader.NormalizeY(NetType.MultipleClassifier, base=0)
+    dataReader.Shuffle()
+    dataReader.GenerateValidationSet(k=12)
+    x_train, y_train = dataReader.XTrain, dataReader.YTrain
+    x_test, y_test = dataReader.XTest, dataReader.YTest
+    x_val, y_val = dataReader.XDev, dataReader.YDev
+    x_train = x_train.squeeze()
+    x_test = x_test.squeeze()
+    x_val = x_val.squeeze()
+
+    x_test_raw = dataReader.XTestRaw[0:64]
+    y_test_raw = dataReader.YTestRaw[0:64]
+
+    return x_train, y_train, x_test, y_test, x_val, y_val, x_test_raw, y_test_raw
+
+
+def build_model():
+    model = Sequential()
+    model.add(Bidirectional(SimpleRNN(units=8), input_shape=(28,28)))
+    model.add(Dense(10, activation='softmax'))
+    model.compile(optimizer='Adam',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
+
+#画出训练过程中训练和验证的精度与损失
+def draw_train_history(history):
+    plt.figure(1)
+
+    # summarize history for accuracy
+    plt.subplot(211)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+
+    # summarize history for loss
+    plt.subplot(212)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+    plt.show()
+
+
+def show_result(x, y, y_raw):
+    x = x / 255
+    fig, ax = plt.subplots(nrows=8, ncols=8, figsize=(11, 11))
+    for i in range(64):
+        ax[i // 8, i % 8].imshow(x[i].transpose(1, 2, 0).squeeze())
+        print(y[i, 0])
+        print(y_raw[i, 0])
+        if y[i, 0] == y_raw[i, 0]:
+            ax[i // 8, i % 8].set_title(y[i, 0])
+        else:
+            ax[i // 8, i % 8].set_title(y[i, 0], fontdict={'color':'r'})
+        ax[i // 8, i % 8].axis('off')
+    # endfor
+    plt.show()
+
+
+if __name__ == '__main__':
+    x_train, y_train, x_test, y_test, x_val, y_val, x_test_raw, y_test_raw = load_data()
+    print(x_train.shape)
+    print(y_train.shape)
+    print(x_test.shape)
+    print(y_test.shape)
+    print(x_val.shape)
+    print(y_train.shape)
+
+    model = build_model()
+    history = model.fit(x_train, y_train,
+                        epochs=10,
+                        batch_size=64,
+                        validation_data=(x_val, y_val))
+    model.save("BiRNN_MNIST.h5")
+    print(model.summary())
+    draw_train_history(history)
+
+    loss, accuracy = model.evaluate(x_test, y_test)
+    print("test loss: {}, test accuracy: {}".format(loss, accuracy))
+
+    z = model.predict(x_test[0:64])
+    show_result(x_test_raw[0:64], np.argmax(z, axis=1).reshape(64, 1), y_test_raw[0:64])
+```
+
+#### 模型输出
+
+```python
+Model: "sequential_1"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+bidirectional_1 (Bidirection (None, 16)                592       
+_________________________________________________________________
+dense_1 (Dense)              (None, 10)                170       
+=================================================================
+Total params: 762
+Trainable params: 762
+Non-trainable params: 0
+_________________________________________________________________
+
+test loss: 0.4622671669960022, test accuracy: 0.8648999929428101
+```
+
+#### 损失以及准确率曲线
+
+![](.gitbook/assets/image%20%2851%29.png)
+
+#### 模型分类结果
+
+![](.gitbook/assets/image%20%2850%29.png)
+
 ## 代码位置
 
 原代码位置：[ch19, Level7](https://github.com/microsoft/ai-edu/blob/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/A2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/SourceCode/ch19-RNNBasic/Level7_Base_MNIST.py)
 
 其中，Level7\_Base\_MNIST.py是单向的循环神经网络，Level7\_BiRnn\_MNIST.py是双向的循环神经网络。
 
-个人代码：
+个人代码：[**Base\_MNIST**](https://github.com/Knowledge-Precipitation-Tribe/Recurrent-neural-network/blob/master/code/Base_MNIST.py)\*\*\*\*
 

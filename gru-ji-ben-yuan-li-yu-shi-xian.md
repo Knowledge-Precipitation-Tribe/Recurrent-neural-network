@@ -210,10 +210,5 @@ pred: [1, 0, 0, 1]
 
 原代码位置：[ch20, Level2](https://github.com/microsoft/ai-edu/blob/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/A2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/SourceCode/ch20-RNNModel/Level2_GRU_BinaryNumberMinus.py)
 
-个人代码：
-
-## 思考和练习
-
-1. 仿照LSTM的实现方式，自己实现GRU单元的前向计算和反向传播。
-2. 仿照LSTM的实例，使用GRU进行训练，并比较效果。
+个人代码：[**GRU\_BinaryNumberMinus**](https://github.com/Knowledge-Precipitation-Tribe/Recurrent-neural-network/blob/master/code/GRU_BinaryNumberMinus.py)\*\*\*\*
 

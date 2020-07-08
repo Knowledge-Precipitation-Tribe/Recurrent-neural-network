@@ -150,6 +150,20 @@ correctness=3255/4400=0.7397727272727272
 
 表19-9右图，可以看到非对角线位置的可见方块的数量明显减少，这也是准确率高的体现。
 
+## keras实现
+
+```python
+一般的通用做法都需要先将一个batch中的所有序列padding到同一长度，
+然后需要在网络训练时屏蔽掉padding的值。
+Keras中自带的屏蔽padding值的方式，在网络结构比较简单时使用很方便。
+
+model = Sequential()
+model.add(Masking(mask_value=0., input_shape=(timesteps, features)))
+model.add(LSTM(32))
+```
+
+
+
 ## 代码位置
 
 原代码位置：[ch19, Level5](https://github.com/microsoft/ai-edu/blob/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/A2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/SourceCode/ch19-RNNBasic/Level5_NameClassifier.py)
