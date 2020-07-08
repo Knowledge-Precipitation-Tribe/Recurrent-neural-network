@@ -364,9 +364,9 @@ if __name__ == '__main__':
     n.train(dataReader, checkpoint=1)
 
     # n.load_parameters(ParameterType.Last)
-    pred_steps = [8, 4, 2, 1]
-    for i in range(4):
-        test(n, dataReader, num_step, pred_steps[i], 1050, 1150)
+    # pred_steps = [8, 4, 2, 1]
+    # for i in range(4):
+    #     test(n, dataReader, num_step, pred_steps[i], 1050, 1150)
 
     n.load_parameters(ParameterType.Best)
     pred_steps = [8, 4, 2, 1]
