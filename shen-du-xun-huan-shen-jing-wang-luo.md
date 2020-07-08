@@ -305,7 +305,7 @@ test loss: 0.0011219596998781416
 
 ### 损失曲线
 
-![](.gitbook/assets/image%20%2853%29.png)
+![](.gitbook/assets/image%20%2854%29.png)
 
 ## 代码位置
 

@@ -355,11 +355,11 @@ test loss: 1.0559768465042114, test accuracy: 0.6190000176429749
 
 #### 损失以及准确率曲线
 
-![](.gitbook/assets/image%20%2854%29.png)
+![](.gitbook/assets/image%20%2856%29.png)
 
 #### 模型分类结果
 
-![](.gitbook/assets/image%20%2852%29.png)
+![](.gitbook/assets/image%20%2853%29.png)
 
 ### MNIST分类-双向循环神经网络
 
@@ -491,11 +491,11 @@ test loss: 0.4622671669960022, test accuracy: 0.8648999929428101
 
 #### 损失以及准确率曲线
 
-![](.gitbook/assets/image%20%2851%29.png)
+![](.gitbook/assets/image%20%2852%29.png)
 
 #### 模型分类结果
 
-![](.gitbook/assets/image%20%2850%29.png)
+![](.gitbook/assets/image%20%2851%29.png)
 
 ## 代码位置
 

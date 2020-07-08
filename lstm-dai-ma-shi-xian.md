@@ -284,6 +284,97 @@ pred: [0, 0, 1, 1]
 12 - 9 = 3
 ```
 
+## keras实现
+
+```python
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+import matplotlib.pyplot as plt
+
+from MiniFramework.DataReader_2_0 import *
+
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+
+train_file = "../data/ch19.train_minus.npz"
+test_file = "../data/ch19.test_minus.npz"
+
+
+def load_data():
+    dataReader = DataReader_2_0(train_file, test_file)
+    dataReader.ReadData()
+    dataReader.Shuffle()
+    dataReader.GenerateValidationSet(k=10)
+    x_train, y_train = dataReader.XTrain, dataReader.YTrain
+    x_test, y_test = dataReader.XTest, dataReader.YTest
+    x_val, y_val = dataReader.XDev, dataReader.YDev
+    return x_train, y_train, x_test, y_test, x_val, y_val
+
+
+def build_model():
+    model = Sequential()
+    model.add(LSTM(input_shape=(4,2),
+                        units=4))
+    model.add(Dense(4, activation='softmax'))
+    model.compile(optimizer='Adam',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
+
+#画出训练过程中训练和验证的精度与损失
+def draw_train_history(history):
+    plt.figure(1)
+
+    # summarize history for accuracy
+    plt.subplot(211)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+
+    # summarize history for loss
+    plt.subplot(212)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'])
+    plt.show()
+
+
+if __name__ == '__main__':
+    x_train, y_train, x_test, y_test, x_val, y_val = load_data()
+    print(x_train.shape)
+    print(y_train.shape)
+    print(x_test.shape)
+    print(x_val.shape)
+
+    model = build_model()
+    history = model.fit(x_train, y_train,
+                        epochs=200,
+                        batch_size=64,
+                        validation_data=(x_val, y_val))
+    print(model.summary())
+    draw_train_history(history)
+
+    loss, accuracy = model.evaluate(x_test, y_test)
+    print("test loss: {}, test accuracy: {}".format(loss, accuracy))
+```
+
+### 模型输出
+
+```python
+test loss: 0.6192645044887767, test accuracy: 0.6397058963775635
+```
+
+损失以及准确率曲线
+
+![](.gitbook/assets/image%20%2850%29.png)
+
 ## 代码位置
 
 原代码位置：[ch20, Level1](https://github.com/microsoft/ai-edu/blob/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/A2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/SourceCode/ch20-RNNModel/Level1_LSTM_BinaryNumberMinus.py)

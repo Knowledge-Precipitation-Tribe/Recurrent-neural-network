@@ -166,10 +166,6 @@ $$ \delta^l_t = \frac{\partial{loss}}{\partial{h_t}} = \delta^{l+1}{x_t} + \delt
 
 可以求得各个门结构加权输入的误差，如下：
 
-$$ \begin{aligned} \delta_{z_{ot}} = \frac{\partial{loss}}{\partial{z_{o_t}}} = \frac{\partial{loss}}{\partial{h_t}} \cdot \frac{\partial{h_t}}{\partial{o_t}} \cdot \frac{\partial{o_t}}{\partial{z_{o_t}}} \\= \delta_t \cdot diag[\tanh(c_t)] \cdot diag[o_t \circ (1 - o_t)] \ &= \delta_t \circ \tanh(c_t) \circ o_t \circ (1 - o_t) \end{aligned} \tag{17} $$
-
-$$ \begin{aligned} \delta_{c_t} = \frac{\partial{loss}}{\partial{c_t}} = \frac{\partial{loss}}{\partial{h_t}} \cdot \frac{\partial{h_t}}{\partial{\tanh(c_t)}} \cdot \frac{\partial{\tanh(c_t)}}{\partial{c_t}} \\= \delta_t \cdot diag[o_t] \cdot diag[1-\tanh^2(c_t)] \ &= \delta_t \circ o_t \circ (1-\tanh^2(c_t)) \end{aligned} \tag{18} $$
-
 $$ \begin{aligned} \delta_{z_{\tilde{c}t}} = \frac{\partial{loss}}{\partial{z_{\tilde{c}_t}}} = \frac{\partial{loss}}{\partial{c_t}} \cdot \frac{\partial{c_t}}{\partial{\tilde{c}_t}} \cdot \frac{\partial{\tilde{c}t}}{\partial{z{\tilde{c}t}}} \\= \delta{c_t} \cdot diag[i_t] \cdot diag[1-(\tilde{c}t)^2] \ &= \delta{c_t} \circ i_t \circ (1-(\tilde{c}_t)^2) \end{aligned} \tag{19} $$
 
 $$ \begin{aligned} \delta_{z_{it}} = \frac{\partial{loss}}{\partial{z_{i_t}}} = \frac{\partial{loss}}{\partial{c_t}} \cdot \frac{\partial{c_t}}{\partial{i_t}} \cdot \frac{\partial{i_t}}{\partial{z_{i_t}}} \\= \delta_{c_t} \cdot diag[\tilde{c}t] \cdot diag[i_t \circ (1 - i_t)] \ &= \delta{c_t} \circ \tilde{c}_t \circ i_t \circ (1 - i_t) \end{aligned} \tag{20} $$
@@ -220,9 +216,7 @@ $$
 \begin{aligned} \delta_{h_{t-1}} = \frac{\partial{loss}}{\partial{h_{t-1}}} = \frac{\partial{loss}}{\partial{z_{ft}}} \cdot \frac{\partial{z_{ft}}}{\partial{h_{t-1}}} + \frac{\partial{loss}}{\partial{z_{it}}} \cdot \frac{\partial{z_{it}}}{\partial{h_{t-1}}} \ &+ \frac{\partial{loss}}{\partial{z_{\tilde{c}t}}} \cdot \frac{\partial{z_{\tilde{c}t}}}{\partial{h_{t-1}}} + \frac{\partial{loss}}{\partial{z_{ot}}} \cdot \frac{\partial{z_{ot}}}{\partial{h_{t-1}}} \\ = \delta_{z_{ft}} \cdot W_f^T + \delta_{z_{it}} \cdot W_i^T + \delta_{z_{\tilde{c}t}} \cdot W_c^T + \delta_{z_{ot}} \cdot W_o^T \end{aligned} \tag{37}
 $$
 
-沿层次向下传递：
-
-$$ \begin{aligned} \delta_{x_t} = \frac{\partial{loss}}{\partial{x_t}} = \frac{\partial{loss}}{\partial{z_{ft}}} \cdot \frac{\partial{z_{ft}}}{\partial{x_t}} + \frac{\partial{loss}}{\partial{z_{it}}} \cdot \frac{\partial{z_{it}}}{\partial{x_t}} \ &+ \frac{\partial{loss}}{\partial{z_{\tilde{c}t}}} \cdot \frac{\partial{z_{\tilde{c}t}}}{\partial{x_t}} + \frac{\partial{loss}}{\partial{z_{ot}}} \cdot \frac{\partial{z_{ot}}}{\partial{x_t}} \\ = \delta_{z_{ft}} \cdot U_f^T + \delta_{z_{it}} \cdot U_i^T + \delta_{z_{\tilde{c}t}} \cdot U_c^T + \delta_{z_{ot}} \cdot U_o^T \end{aligned} \tag{38} $$
+沿层次向下传递：$$ \begin{aligned} \delta_{x_t} = \frac{\partial{loss}}{\partial{x_t}} = \frac{\partial{loss}}{\partial{z_{ft}}} \cdot \frac{\partial{z_{ft}}}{\partial{x_t}} + \frac{\partial{loss}}{\partial{z_{it}}} \cdot \frac{\partial{z_{it}}}{\partial{x_t}} \ &+ \frac{\partial{loss}}{\partial{z_{\tilde{c}t}}} \cdot \frac{\partial{z_{\tilde{c}t}}}{\partial{x_t}} + \frac{\partial{loss}}{\partial{z_{ot}}} \cdot \frac{\partial{z_{ot}}}{\partial{x_t}} \\ = \delta_{z_{ft}} \cdot U_f^T + \delta_{z_{it}} \cdot U_i^T + \delta_{z_{\tilde{c}t}} \cdot U_c^T + \delta_{z_{ot}} \cdot U_o^T \end{aligned} \tag{38} $$
 
 以上，LSTM反向传播公式推导完毕。
 
