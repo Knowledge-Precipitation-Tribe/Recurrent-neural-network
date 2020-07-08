@@ -101,7 +101,7 @@ if __name__ == '__main__':
                         epochs=10,
                         batch_size=64,
                         validation_data=(x_val, y_val))
-    # model.save("BiRNN_MNIST.h5")
+    model.save("BiRNN_MNIST.h5")
     print(model.summary())
     draw_train_history(history)
 
