@@ -88,8 +88,8 @@ if __name__ == '__main__':
     net_type = NetType.Fitting
     num_step = 24
     x_train, y_train, x_test, y_test, x_val, y_val = load_data(net_type, num_step)
-    # print(x_train.shape)
-    # print(y_train.shape)
+    print(x_train.shape)
+    print(y_train.shape)
     # print(x_test.shape)
     # print(y_test.shape)
     # print(x_val.shape)
